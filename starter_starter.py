@@ -2,6 +2,8 @@ import datetime
 from yahoo_fantasy_api import game, league, team
 from yahoo_oauth import OAuth2 # Handles authentication
 
+#beginning of scene
+
 # --- Configuration ---
 # Place your oauth2 credentials file (e.g., 'private.json') in this directory
 # You get this file when registering your app with Yahoo Developer Network
