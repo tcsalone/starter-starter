@@ -3,20 +3,20 @@
 import datetime
 import os
 import sys
-from yfpy import YahooFantasySports # Make sure yfpy is installed
+from yfpy import YahooFantasySportsQuery # Make sure yfpy is installed
 
 # --- Configuration ---
 
 # 1. SET YOUR LEAGUE ID HERE:
 #    Find this in the URL of your Yahoo Fantasy Baseball league page.
 #    Example: If URL is https://baseball.fantasysports.yahoo.com/b1/123456, ID is "123456"
-YAHOO_LEAGUE_ID = "YOUR_LEAGUE_ID" # <--- *** REPLACE THIS REQUIRED ***
+YAHOO_LEAGUE_ID = "41370" # <--- *** REPLACE THIS REQUIRED ***
 
 # 2. SET THE PATH TO YOUR AUTHENTICATION DIRECTORY:
 #    This is the directory where your 'private.json' file is located.
 #    Use '.' for the current directory, or provide a full path like '/path/to/your/auth'.
 #    Recommendation: Keep this directory separate from your script for security.
-AUTH_DIR = "." # <--- *** ADJUST IF 'private.json' IS ELSEWHERE ***
+AUTH_DIR = "C:\\Users\\eamon\\Git_Repos\\starter_starter\\starter-starter\\yfpy\\private.json" # <--- *** ADJUST IF 'private.json' IS ELSEWHERE ***
 
 # 3. SET THE GAME CODE (usually 'mlb' for baseball)
 GAME_CODE = 'mlb'
@@ -60,6 +60,38 @@ def get_starting_pitchers(league_id, game_code, auth_dir):
     if not ensure_auth_dir_and_private_json(auth_dir):
         sys.exit(1) # Exit if auth setup is missing
 
+    # --- BEGIN DEBUG BLOCK ---
+    print("-" * 20 + " DEBUG: Manual File Check " + "-" * 20)
+    debug_path = os.path.abspath(os.path.join(auth_dir, 'private.json'))
+    print(f"[DEBUG] Checking for file at: {debug_path}")
+    if not os.path.exists(debug_path):
+        print("[DEBUG] ERROR: File does NOT exist at the specified path!")
+    elif not os.path.isfile(debug_path):
+         print("[DEBUG] ERROR: Path exists, but it's not a file!")
+    else:
+        print("[DEBUG] File found. Attempting to read and parse...")
+        try:
+            with open(debug_path, 'r', encoding='utf-8') as f: # Explicitly use UTF-8
+                import json
+                creds = json.load(f)
+                print("[DEBUG] JSON parsed successfully.")
+                if "consumer_key" in creds:
+                    # Print only the first few and last few chars for verification without exposing the whole key
+                    key_preview = creds['consumer_key'][:5] + "..." + creds['consumer_key'][-5:]
+                    print(f"[DEBUG] Found 'consumer_key': {key_preview}")
+                else:
+                    print("[DEBUG] ERROR: 'consumer_key' key NOT found in JSON data.")
+                if "consumer_secret" in creds:
+                     print("[DEBUG] Found 'consumer_secret': (present)")
+                else:
+                     print("[DEBUG] ERROR: 'consumer_secret' key NOT found in JSON data.")
+        except json.JSONDecodeError as json_err:
+            print(f"[DEBUG] ERROR: Failed to parse JSON - {json_err}")
+        except Exception as read_err:
+            print(f"[DEBUG] ERROR: Failed to read file - {read_err}")
+    print("-" * 20 + " END DEBUG BLOCK " + "-" * 26)
+    # --- END DEBUG BLOCK ---
+
     print("Attempting to authenticate with Yahoo Fantasy Sports...")
     try:
         # Initialize the YFPY client.
@@ -68,7 +100,9 @@ def get_starting_pitchers(league_id, game_code, auth_dir):
         # You MUST open that URL in a browser, log in to Yahoo, grant access,
         # and paste the resulting verification code back into the terminal.
         # This only needs to be done once initially or if the token expires.
-        yfs = YahooFantasySports(auth_dir, league_id, game_code=game_code)
+
+        # Corrected line: Pass auth_dir, game_code, league_id positionally
+        yfs = YahooFantasySportsQuery(auth_dir, game_code, league_id)
         print("Authentication successful (or cached token used).")
 
     except Exception as e:
