@@ -1,188 +1,214 @@
 import datetime
 from yahoo_fantasy_api import game, league, team
-from yahoo_oauth import OAuth2  # Handles authentication
+from yahoo_oauth import OAuth2
+import pprint
 
-# --- Configuration ---
-# Place your oauth2 credentials file (e.g., 'private.json') in this directory
-# You get this file when registering your app with Yahoo Developer Network
-# Ensure it has read/write permissions for Fantasy Sports
-AUTH_DIR = "."  # Directory to store the authentication token
+# --- Configuration remains the same ---
+AUTH_DIR = "."
 
-# --- Functions ---
+def detailed_player_inspection(player):
+    """Print all available information about a player"""
+    print(f"\n==== DETAILED PLAYER INFO: {player.get('name')} ====")
+    for key, value in player.items():
+        print(f"{key}: {value}")
+    print("====================================\n")
 
-
-def get_todays_starting_pitchers_on_bench(team_obj):
-    """
-    Fetches the team roster and identifies SPs on the bench starting today.
-    Returns a list of player dictionaries.
-    """
+def get_all_pitchers_with_details(team_obj):
+    """Get all pitchers and examine their details"""
     today = datetime.date.today()
-    print(f"Fetching roster for {today}...")
+    
     try:
-        roster = team_obj.roster(day=today)  # Fetch roster for the specific day
+        # Get roster for today
+        roster = team_obj.roster(day=today)
+        
+        # Try to get additional player details
+        # The API might offer a way to get more details
+        player_stats = {}
+        try:
+            # Attempt to get player stats which might include status
+            # Note: This is an educated guess at what the API might provide
+            current_week = team_obj.current_week()
+            player_stats = team_obj.player_stats("week", current_week)
+            print("Successfully retrieved player stats!")
+        except Exception as e:
+            print(f"Could not get player stats: {e}")
+            
+        # Try to get matchup data which might show probable pitchers
+        try:
+            matchups = team_obj.matchups()
+            print("Matchups data retrieved!")
+            pprint.pprint(list(matchups.keys())[:5])  # Show first few keys
+        except Exception as e:
+            print(f"Could not get matchups: {e}")
+            
+        print(f"Found {len(roster)} players on roster")
+            
+        # Examine all pitchers regardless of bench/active status
+        all_pitchers = []
+        for player in roster:
+            positions = player.get('eligible_positions', [])
+            
+            # Check if player is a pitcher (SP or RP)
+            is_pitcher = 'SP' in positions or 'RP' in positions
+            
+            if is_pitcher:
+                print(f"\nFound pitcher: {player.get('name')}")
+                detailed_player_inspection(player)
+                
+                # If we have stats data, check for this player
+                if player_stats and player.get('player_id') in player_stats:
+                    print("Additional player stats found:")
+                    pprint.pprint(player_stats[player.get('player_id')])
+                
+                all_pitchers.append(player)
+                
+        # Print out summary
+        print(f"\nFound {len(all_pitchers)} total pitchers on roster")
+        print("Pitcher names and positions:")
+        for p in all_pitchers:
+            print(f"- {p.get('name')}: {p.get('eligible_positions')} (Currently: {p.get('selected_position')})")
+            
+        return all_pitchers
+        
     except Exception as e:
         print(f"Error fetching roster: {e}")
+        import traceback
+        traceback.print_exc()
         return []
 
-    starters_on_bench = []
-    for player in roster:
-        is_sp = 'SP' in player.get('eligible_positions', [])
-        is_on_bench = player.get('selected_position') == 'BN'
-        # Crucial: Check if the player is actually starting today.
-        # The API/wrapper needs to provide this info. Common keys might be
-        # 'is_starting', 'status', 'probable_starter'. Inspect the player dict!
-        # Example using a hypothetical 'is_starting' key (ADAPT THIS KEY):
-        is_starting_today = player.get('is_starting', False)  # <-- CHECK/ADAPT THIS KEY
-
-        # --- IMPORTANT ---
-        # You MUST inspect the actual data returned for a player object
-        # to find the correct key indicating they are starting today.
-        # Use print(player) within the loop during testing to see all available fields.
-        # It might be in 'status', or a specific 'starting_status' field, etc.
-        # Example Alternative: Sometimes status might be 'P' (Probable) or 'S' (Starting)
-        # is_starting_today = player.get('status') in ['P', 'S'] # Another possible check
-
-        print(f"  Checking Player: {player.get('name', 'N/A')}, Pos: {player.get('selected_position')}, "
-              f"Eligible: {player.get('eligible_positions')}, Starting Today?: {is_starting_today}")  # Debugging line
-
-        if is_sp and is_on_bench and is_starting_today:
-            print(f"    -> Found starting pitcher on bench: {player.get('name')}")
-            starters_on_bench.append(player)
-
-    return starters_on_bench
-
-
-def get_available_sp_slots(team_obj):
-    """
-    Identifies empty 'SP' slots in the active lineup.
-    Returns the number of available slots.
-    """
-    today = datetime.date.today()
+def examine_league_structure(lg_obj):
+    """Examine league settings and structure"""
     try:
-        roster = team_obj.roster(day=today)
+        # Get league settings
+        settings = lg_obj.settings()
+        print("\n==== LEAGUE SETTINGS ====")
+        print(f"League Name: {settings.get('name', 'N/A')}")
+        print(f"Season: {settings.get('season', 'N/A')}")
+        
+        # Print roster positions
+        if 'roster_positions' in settings:
+            print("\nROSTER POSITIONS:")
+            for pos, count in settings['roster_positions'].items():
+                print(f"- {pos}: {count}")
+        
+        # Get current matchup period
+        try:
+            current_week = lg_obj.current_week()
+            print(f"\nCurrent Matchup Week: {current_week}")
+        except Exception as e:
+            print(f"Error getting current week: {e}")
+            
+        # Get today's scoreboard
+        try:
+            today = datetime.date.today()
+            scoreboard = lg_obj.scoreboard(week=current_week)
+            print("\nThis week's matchups:")
+            pprint.pprint(scoreboard)
+        except Exception as e:
+            print(f"Error getting scoreboard: {e}")
+            
+        return settings
+        
     except Exception as e:
-        print(f"Error fetching roster for SP slots: {e}")
-        return 0
+        print(f"Error examining league: {e}")
+        return {}
 
-    # Determine how many SP-specific slots the league allows
-    league_settings = team_obj.league().settings()
-    roster_positions = league_settings.get('roster_positions', {})
-    sp_slot_count = roster_positions.get('SP', 0)  # Get max SP slots allowed
-
-    current_sp_players = 0
-    for player in roster:
-        if player.get('selected_position') == 'SP':
-            current_sp_players += 1
-
-    available_slots = sp_slot_count - current_sp_players
-    print(f"League SP Slots: {sp_slot_count}, Currently Filled: {current_sp_players}, Available: {available_slots}")
-    return max(0, available_slots)  # Ensure non-negative
-
-
-def set_lineup(team_obj, players_to_move):
-    """
-    Constructs and executes the API call to move players to SP slots.
-    """
-    if not players_to_move:
-        print("No lineup changes needed.")
-        return
-
-    today_str = datetime.date.today().strftime("%Y-%m-%d")
-    lineup_payload = {"players": []}
-
-    print("Preparing lineup changes...")
-    for player in players_to_move:
-        player_id = player.get('player_id')
-        player_name = player.get('name', 'N/A')
-        print(f"  Queueing move: {player_name} ({player_id}) from BN to SP")
-        lineup_payload["players"].append({
-            "player_key": team_obj.player_key_from_id(player_id),  # Construct player_key
-            "position": "SP"  # Target position
-        })
-
-    print(f"Attempting to apply lineup for {today_str} with payload: {lineup_payload}")
+def check_player_status_options(team_obj):
+    """Try different methods to get player status information"""
+    print("\n==== CHECKING ADDITIONAL PLAYER DATA METHODS ====")
+    
+    # List of method names that might exist to get player information
+    possible_methods = [
+        'player_details',
+        'get_player_stats',
+        'get_player_status',
+        'player_news',
+        'get_player_news',
+        'get_probable_pitchers',
+        'game_details',
+        'team_stats',
+        'players_status'
+    ]
+    
+    # Try calling each method to see if it exists
+    for method in possible_methods:
+        if hasattr(team_obj, method):
+            print(f"Found method: {method}")
+            try:
+                # Try calling with no args first
+                result = getattr(team_obj, method)()
+                print(f"  Success! Sample result:")
+                pprint.pprint(result[:2] if isinstance(result, list) else result)
+            except Exception as e:
+                print(f"  Error calling {method}: {e}")
+        else:
+            print(f"Method not available: {method}")
+            
+    # Check if there's an API method to get today's MLB probables directly
+    print("\nChecking for probable pitchers through league object...")
     try:
-        # Use team.change_roster() which seems to be the intended method in the wrapper
-        team_obj.change_roster(lineup_payload, date=today_str)
-        print("Lineup successfully updated!")
+        if hasattr(lg_obj, 'probable_pitchers'):
+            probables = lg_obj.probable_pitchers()
+            print("Found probable pitchers:")
+            pprint.pprint(probables)
+        else:
+            print("No probable_pitchers method available on league object")
     except Exception as e:
-        print(f"ERROR updating lineup: {e}")
-        print("  Payload attempted:", lineup_payload)
-        # Consider logging the full error traceback here for debugging
-
+        print(f"Error checking probable pitchers: {e}")
+        
+    print("==== END METHOD CHECKS ====\n")
 
 # --- Main Execution ---
-
 if __name__ == "__main__":
-    print("Starting Yahoo Fantasy Auto-Pitcher Setter...")
-    current_time_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"Current time: {current_time_str}")
-
-    # 1. Authenticate
+    print("Starting Improved Yahoo Fantasy Pitcher Analyzer...")
+    
+    # Authentication
     try:
         sc = OAuth2(None, None, from_file=f"{AUTH_DIR}/private.json", base_dir=AUTH_DIR)
         if not sc.token_is_valid():
             sc.refresh_access_token()
     except Exception as e:
         print(f"ERROR: Authentication failed: {e}")
-        print("Ensure 'private.json' is in the correct directory and has the right permissions.")
         exit(1)
-
-    # 2. Get Game/League/Team Objects
+    
+    # Game/League/Team setup
     try:
-        # Get game object
-        gm = game.Game(sc, 'mlb')  # 'mlb' is the game code for baseball
+        gm = game.Game(sc, 'mlb')
         league_ids = gm.league_ids()
         if not league_ids:
-            print("ERROR: No leagues found for this account in the current MLB season.")
+            print("ERROR: No leagues found.")
             exit(1)
-
-        # Print available leagues for user selection
+        
         print(f"Available league IDs: {league_ids}")
-        league_id = input(f"Enter your League ID from the list above: ")
-
-        if league_id not in league_ids:
-            print(f"Error: League ID '{league_id}' not found in your leagues: {league_ids}")
-            exit(1)
-
-        # Get league and team objects
+        league_id = "458.l.41370"  # Using your predefined league
+        
         lg = gm.to_league(league_id)
-        team_key = lg.team_key()  # Gets your team key in that league
+        team_key = lg.team_key()
         tm = lg.to_team(team_key)
         
-        # Now that tm is defined, debug it
-        print("\n--- Debugging Team Object ---")
-        print(f"Type of tm: {type(tm)}")
-        print("Attributes of tm (dir):")
-        print(dir(tm))  # Shows all methods and attributes
-        print("--- End Debugging ---")
+        print(f"Connected to League ID: {league_id}, Team Key: {team_key}")
         
-        print(f"Successfully connected to League ID: {league_id}, Team Name: {tm.team_key}")
-
+        # Let's try to inspect available methods
+        print("\nTeam object available methods:")
+        team_methods = [method for method in dir(tm) if not method.startswith('_')]
+        print(team_methods)
+        
+        # Check league structure first
+        print("\nExamining league structure...")
+        league_settings = examine_league_structure(lg)
+        
+        # Check what player status methods might be available
+        print("\nChecking for player status methods...")
+        check_player_status_options(tm)
+        
+        # Now examine all pitchers to find status indicators
+        print("\nExamining all pitchers on roster...")
+        all_pitchers = get_all_pitchers_with_details(tm)
+        
+        print("\nAnalysis Complete!")
+        
     except Exception as e:
-        print(f"ERROR: Could not connect to Yahoo Fantasy API or find league/team: {e}")
+        print(f"ERROR: {e}")
         import traceback
         traceback.print_exc()
         exit(1)
-
-    # 3. Identify Starters on Bench
-    starters_on_bench = get_todays_starting_pitchers_on_bench(tm)
-
-    if not starters_on_bench:
-        print("No starting pitchers found on the bench for today.")
-        exit(0)  # Normal exit, nothing to do
-
-    # 4. Identify Available SP Slots
-    available_slots = get_available_sp_slots(tm)
-
-    if available_slots <= 0:
-        print("No available SP slots in the active lineup.")
-        exit(0)  # Normal exit, nothing to do
-
-    # 5. Determine Players to Move (Limit by available slots)
-    players_to_move = starters_on_bench[:available_slots]  # Take only as many as there are slots
-
-    # 6. Set Lineup
-    set_lineup(tm, players_to_move)
-
-    print("Script finished.")
