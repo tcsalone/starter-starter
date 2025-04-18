@@ -1,0 +1,223 @@
+--- Found Player: Jhoan Duran ---
+Located at index in roster list: 21
+
+Standard Object Representation:
+Player({
+  "display_position": "RP",
+  "draft_analysis": {
+    "average_pick": 94.4,
+    "average_round": 9.0,
+    "average_cost": 12.9,
+    "percent_drafted": 1.0,
+    "preseason_average_cost": 12.9,
+    "preseason_average_pick": 92.4,
+    "preseason_average_round": 8.9,
+    "preseason_percent_drafted": 1.0
+  },
+  "editorial_player_key": "mlb.p.11495",
+  "editorial_team_abbr": "MIN",
+  "editorial_team_full_name": "Minnesota Twins",
+  "editorial_team_key": "mlb.t.9",
+  "editorial_team_url": "https://sports.yahoo.com/mlb/teams/minnesota/",
+  "eligible_positions": [
+    "RP"
+  ],
+  "eligible_positions_to_add": null,
+  "has_player_notes": 1,
+  "has_recent_player_notes": 1,
+  "headshot": {
+    "size": "small",
+    "url": "https://s.yimg.com/iu/api/res/1.2/0fFbJtQGpRNh_d7u_48kng--~C/YXBwaWQ9eXNwb3J0cztjaD0yMzM2O2NyPTE7Y3c9MTc5MDtkeD04NTc7ZHk9MDtmaT11bGNyb3A7aD02MDtxPTEwMDt3PTQ2/https://s.yimg.com/xe/i/us/sp/v/mlb_cutout/players_l/03242025/11495.png"
+  },
+  "image_url": "https://s.yimg.com/iu/api/res/1.2/0fFbJtQGpRNh_d7u_48kng--~C/YXBwaWQ9eXNwb3J0cztjaD0yMzM2O2NyPTE7Y3c9MTc5MDtkeD04NTc7ZHk9MDtmaT11bGNyb3A7aD02MDtxPTEwMDt3PTQ2/https://s.yimg.com/xe/i/us/sp/v/mlb_cutout/players_l/03242025/11495.png",
+  "is_editable": 0,
+  "is_keeper": {
+    "status": false,
+    "cost": null,
+    "kept": false
+  },
+  "is_undroppable": 0,
+  "name": {
+    "ascii_first": "Jhoan",
+    "ascii_last": "Duran",
+    "first": "Jhoan",
+    "full": "Jhoan Duran",
+    "last": "Duran"
+  },
+  "ownership": {
+    "ownership_type": "team",
+    "owner_team_key": "458.l.41370.t.2",
+    "owner_team_name": "99 Problems"
+  },
+  "percent_owned": {
+    "coverage_type": "week",
+    "week": 3,
+    "value": 91,
+    "delta": -1.0
+  },
+  "player_id": 11495,
+  "player_key": "458.p.11495",
+  "player_notes_last_timestamp": 1744773233,
+  "player_stats": {
+    "coverage_type": "date",
+    "date": "2025-04-15",
+    "stats": [
+      {
+        "stat": {
+          "stat_id": 50,
+          "value": 1.0
+        }
+      },
+      {
+        "stat": {
+          "stat_id": 28,
+          "value": 0.0
+        }
+      },
+      {
+        "stat": {
+          "stat_id": 32,
+          "value": 1.0
+        }
+      },
+      {
+        "stat": {
+          "stat_id": 42,
+          "value": 1.0
+        }
+      },
+      {
+        "stat": {
+          "stat_id": 48,
+          "value": 0.0
+        }
+      },
+      {
+        "stat": {
+          "stat_id": 26,
+          "value": 0.0
+        }
+      },
+      {
+        "stat": {
+          "stat_id": 27,
+          "value": 1.0
+        }
+      }
+    ]
+  },
+  "position_type": "P",
+  "primary_position": "RP",
+  "selected_position": {
+    "coverage_type": "date",
+    "date": "2025-04-15",
+    "is_flex": 0,
+    "position": "P"
+  },
+  "uniform_number": 59,
+  "url": "https://sports.yahoo.com/mlb/players/11495"
+})
+
+All Object Attributes (using vars()):
+  - _extracted_data: {'player_key': '458.p.11495', 'player_id': 11495, 'name': Name({
+  "ascii_first": "Jhoan",
+  "ascii_last": "Duran",
+  "first": "Jhoan",
+  "full": "...
+  - _index: 0
+  - _keys: ['player_key', 'player_id', 'name', 'url', 'editorial_player_key', 'editorial_team_key', 'editorial_team_full_name', 'editorial_team_abbr', 'editor...
+  - bye_weeks: ByeWeeks({})
+  - bye: None
+  - display_position: 'RP'
+  - draft_analysis: DraftAnalysis({
+  "average_pick": 94.4,
+  "average_round": 9.0,
+  "average_cost": 12.9,
+  "percent_drafted": 1.0,
+  "preseason_average_cost": 12.9,...
+  - average_draft_pick: 94.4
+  - average_draft_round: 9.0
+  - average_draft_cost: 12.9
+  - percent_drafted: 1.0
+  - editorial_player_key: 'mlb.p.11495'
+  - editorial_team_abbr: 'MIN'
+  - editorial_team_full_name: 'Minnesota Twins'
+  - editorial_team_key: 'mlb.t.9'
+  - editorial_team_url: 'https://sports.yahoo.com/mlb/teams/minnesota/'
+  - eligible_positions: ['RP']
+  - eligible_positions_to_add: None
+  - has_player_notes: 1
+  - has_recent_player_notes: 1
+  - headshot: Headshot({
+  "size": "small",
+  "url": "https://s.yimg.com/iu/api/res/1.2/0fFbJtQGpRNh_d7u_48kng--~C/YXBwaWQ9eXNwb3J0cztjaD0yMzM2O2NyPTE7Y3c9MTc5MD...
+  - headshot_size: 'small'
+  - headshot_url: 'https://s.yimg.com/iu/api/res/1.2/0fFbJtQGpRNh_d7u_48kng--~C/YXBwaWQ9eXNwb3J0cztjaD0yMzM2O2NyPTE7Y3c9MTc5MDtkeD04NTc7ZHk9MDtmaT11bGNyb3A7aD02MDtxP...
+  - image_url: 'https://s.yimg.com/iu/api/res/1.2/0fFbJtQGpRNh_d7u_48kng--~C/YXBwaWQ9eXNwb3J0cztjaD0yMzM2O2NyPTE7Y3c9MTc5MDtkeD04NTc7ZHk9MDtmaT11bGNyb3A7aD02MDtxP...
+  - injury_note: ''
+  - is_editable: 0
+  - is_keeper: {'status': False, 'cost': None, 'kept': False}
+  - is_undroppable: 0
+  - name: Name({
+  "ascii_first": "Jhoan",
+  "ascii_last": "Duran",
+  "first": "Jhoan",
+  "full": "Jhoan Duran",
+  "last": "Duran"
+})
+  - first_name: 'Jhoan'
+  - last_name: 'Duran'
+  - full_name: 'Jhoan Duran'
+  - ownership: Ownership({
+  "ownership_type": "team",
+  "owner_team_key": "458.l.41370.t.2",
+  "owner_team_name": "99 Problems"
+})
+  - percent_owned: PercentOwned({
+  "coverage_type": "week",
+  "week": 3,
+  "value": 91,
+  "delta": -1.0
+})
+  - percent_owned_value: 91.0
+  - player_advanced_stats: PlayerAdvancedStats({})
+  - player_id: 11495
+  - player_key: '458.p.11495'
+  - player_notes_last_timestamp: 1744773233
+  - player_points: PlayerPoints({})
+  - player_points_value: 0.0
+  - player_stats: PlayerStats({
+  "coverage_type": "date",
+  "date": "2025-04-15",
+  "stats": [
+    {
+      "stat": {
+        "stat_id": 50,
+        "value": 1.0
+   ...
+  - stats: [Stat({
+  "stat_id": 50,
+  "value": 1.0
+}), Stat({
+  "stat_id": 28,
+  "value": 0.0
+}), Stat({
+  "stat_id": 32,
+  "value": 1.0
+}), Stat({
+  "stat_id...
+  - position_type: 'P'
+  - primary_position: 'RP'
+  - selected_position: SelectedPosition({
+  "coverage_type": "date",
+  "date": "2025-04-15",
+  "is_flex": 0,
+  "position": "P"
+})
+  - selected_position_value: 'P'
+  - status: ''
+  - status_full: ''
+  - transaction_data: TransactionData({})
+  - uniform_number: 59
+  - url: 'https://sports.yahoo.com/mlb/players/11495'
+--------------------------------------------------

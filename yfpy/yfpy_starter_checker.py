@@ -16,7 +16,7 @@ YAHOO_LEAGUE_ID = "41370" # <--- *** REPLACE THIS REQUIRED ***
 #    This is the directory where your 'private.json' file is located.
 #    Use '.' for the current directory, or provide a full path like '/path/to/your/auth'.
 #    Recommendation: Keep this directory separate from your script for security.
-AUTH_DIR = "C:\\Users\\eamon\\Git_Repos\\starter_starter\\starter-starter\\yfpy\\private.json" # <--- *** ADJUST IF 'private.json' IS ELSEWHERE ***
+AUTH_DIR = "C:\\Users\\eamon\\Git_Repos\\starter_starter\\starter-starter\\yfpy\\" # <--- *** ADJUST IF 'private.json' IS ELSEWHERE ***
 
 # 3. SET THE GAME CODE (usually 'mlb' for baseball)
 GAME_CODE = 'mlb'
@@ -60,49 +60,11 @@ def get_starting_pitchers(league_id, game_code, auth_dir):
     if not ensure_auth_dir_and_private_json(auth_dir):
         sys.exit(1) # Exit if auth setup is missing
 
-    # --- BEGIN DEBUG BLOCK ---
-    print("-" * 20 + " DEBUG: Manual File Check " + "-" * 20)
-    debug_path = os.path.abspath(os.path.join(auth_dir, 'private.json'))
-    print(f"[DEBUG] Checking for file at: {debug_path}")
-    if not os.path.exists(debug_path):
-        print("[DEBUG] ERROR: File does NOT exist at the specified path!")
-    elif not os.path.isfile(debug_path):
-         print("[DEBUG] ERROR: Path exists, but it's not a file!")
-    else:
-        print("[DEBUG] File found. Attempting to read and parse...")
-        try:
-            with open(debug_path, 'r', encoding='utf-8') as f: # Explicitly use UTF-8
-                import json
-                creds = json.load(f)
-                print("[DEBUG] JSON parsed successfully.")
-                if "consumer_key" in creds:
-                    # Print only the first few and last few chars for verification without exposing the whole key
-                    key_preview = creds['consumer_key'][:5] + "..." + creds['consumer_key'][-5:]
-                    print(f"[DEBUG] Found 'consumer_key': {key_preview}")
-                else:
-                    print("[DEBUG] ERROR: 'consumer_key' key NOT found in JSON data.")
-                if "consumer_secret" in creds:
-                     print("[DEBUG] Found 'consumer_secret': (present)")
-                else:
-                     print("[DEBUG] ERROR: 'consumer_secret' key NOT found in JSON data.")
-        except json.JSONDecodeError as json_err:
-            print(f"[DEBUG] ERROR: Failed to parse JSON - {json_err}")
-        except Exception as read_err:
-            print(f"[DEBUG] ERROR: Failed to read file - {read_err}")
-    print("-" * 20 + " END DEBUG BLOCK " + "-" * 26)
-    # --- END DEBUG BLOCK ---
 
     print("Attempting to authenticate with Yahoo Fantasy Sports...")
     try:
-        # Initialize the YFPY client.
-        # This handles the OAuth2 flow. It looks for 'private.json' in auth_dir.
-        # If tokens are missing or expired, it will print a URL.
-        # You MUST open that URL in a browser, log in to Yahoo, grant access,
-        # and paste the resulting verification code back into the terminal.
-        # This only needs to be done once initially or if the token expires.
-
-        # Corrected line: Pass auth_dir, game_code, league_id positionally
-        yfs = YahooFantasySportsQuery(auth_dir, game_code, league_id)
+        #yfs = YahooFantasySportsQuery(auth_dir, game_code, league_id, yahoo_consumer_key="dj0yJmk9WVhKSVk2Vm5HNVBFJmQ9WVdrOVEwRklWbGhyUjBNbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWJh", yahoo_consumer_secret="00bc06f768688f8aab80164babc32117e5a69d96")
+        yfs = YahooFantasySportsQuery(YAHOO_LEAGUE_ID, AUTH_DIR, GAME_CODE, yahoo_consumer_key="dj0yJmk9WVhKSVk2Vm5HNVBFJmQ9WVdrOVEwRklWbGhyUjBNbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWJh", yahoo_consumer_secret="00bc06f768688f8aab80164babc32117e5a69d96")
         print("Authentication successful (or cached token used).")
 
     except Exception as e:
@@ -117,26 +79,128 @@ def get_starting_pitchers(league_id, game_code, auth_dir):
     try:
         # Get the user's default team object for the specified league
         print(f"Accessing your team in league {league_id}...")
-        team = yfs.get_team()
+        team = yfs.get_team_info(2)
         if not team:
              print(f"Error: Could not retrieve your team for league ID {league_id}.")
              print("Is the LEAGUE_ID correct? Do you have a team in that league?")
              sys.exit(1)
 
-        print(f"Successfully accessed team: {team.team_name}")
+        #print(f"Successfully accessed team: {team.team_name}")
 
         # Get today's date for the roster query
         today = datetime.date.today()
+        today = today + datetime.timedelta(days=1)
         print(f"Checking roster and pitcher status for: {today.strftime('%Y-%m-%d')}")
 
         # Fetch the roster for today
-        roster = team.get_roster(day=today)
+        #roster = yfs.get_roster(2, day=today)
+        #roster = yfs.get_team_roster_player_info_by_date(day=today)
+        
+        #this works...
+        # #roster = yfs.get_team_roster_by_week(2, chosen_week='current')
 
+        roster = yfs.get_team_roster_player_info_by_date(2, )
+       
+
+            # --- Debugging Loop for Specific Player by Name ---
+
+        target_name = "Kris Bubic"  # <--- Set the player name you want to find
+
+        print("\n" + "="*60)
+        print(f"DEBUG: Searching Roster for Player: '{target_name}'")
+        print("="*60)
+
+        player_found_flag = False
+        player_index = -1 # To keep track of the player's position in the original list
+
+        # Assuming 'roster' is the list of player objects from team.get_roster(day=today)
+        if not roster:
+            print("Roster data is empty or not loaded.")
+        else:
+            for player in roster:
+                player_index += 1 # Increment index for each player processed
+
+                # Basic check: Ensure player object exists and has the necessary name attributes
+                if not player or not hasattr(player, 'name') or not hasattr(player.name, 'full'):
+                    print(f"\nSkipping item at index {player_index}: Not a valid player object or missing 'name.full' attribute.")
+                    continue
+
+                current_player_name = player.name.full
+
+                # Check if the current player's full name matches the target name
+                if current_player_name == target_name:
+                    player_found_flag = True
+                    print(f"\n--- Found Player: {target_name} ---")
+                    print(f"Located at index in roster list: {player_index}")
+
+                    # Print the standard object representation first (provided by yfpy)
+                    print("\nStandard Object Representation:")
+                    try:
+                        print(player)
+                    except Exception as e:
+                        print(f"  - Error printing standard representation: {e}")
+
+
+                    # Print all attributes using vars() for detailed inspection
+                    print("\nAll Object Attributes (using vars()):")
+                    try:
+                        # vars(player) returns the __dict__ attribute (attributes and values)
+                        attributes = vars(player)
+                        if attributes: # Check if the dictionary is not empty
+                            for key, value in attributes.items():
+                                # Basic formatting for readability
+                                value_str = repr(value) # Use repr() for unambiguous representation
+                                if len(value_str) > 150: # Truncate very long values
+                                    value_str = value_str[:147] + "..."
+                                print(f"  - {key}: {value_str}")
+                        else:
+                            print("  - No attributes found via vars().")
+                    except TypeError:
+                        print("  - Could not retrieve attributes using vars() for this object (TypeError).")
+                    except Exception as e:
+                        print(f"  - An error occurred retrieving attributes: {e}")
+
+
+                    print("-" * 50) # Separator for readability
+
+                    # If you only expect one player with this name and want to stop
+                    # after finding the first match, uncomment the next line:
+                    # break
+
+            # Summary message after checking the entire roster
+            print("\n" + "="*60)
+            if player_found_flag:
+                print(f"Finished searching roster. Found '{target_name}'.")
+            else:
+                # If the player wasn't found, it might be helpful to list the names that WERE found
+                print(f"Finished searching roster. Player '{target_name}' was NOT found.")
+                print("\nNames found in the roster:")
+                names_in_roster = [p.name.full for p in roster if hasattr(p, 'name') and hasattr(p.name, 'full')]
+                if names_in_roster:
+                    for i, name in enumerate(names_in_roster):
+                        print(f"  {i+1}. {name}")
+                else:
+                    print("  - Could not extract any names from the roster data.")
+
+            print("="*60)
+        # --- End Debugging Loop ---
+
+
+
+
+        print("\n--- Verifying all players by name ---")
+        count = 0
+        for player in roster:
+            count += 1
+            player_name = player.name.full if hasattr(player, 'name') and hasattr(player.name, 'full') else "Unknown Name"
+            print(f"{count}. {player_name}")
+        #print(roster)
         starting_pitchers_today = []
         other_sps_on_roster = []
 
         print("\n--- Analyzing Roster ---")
         for player in roster:
+            print(player)
             player_name = player.name.full
             is_sp = any(pos.position == 'SP' for pos in player.eligible_positions)
 
