@@ -5,23 +5,9 @@ import os
 import sys
 from yfpy import YahooFantasySportsQuery # Make sure yfpy is installed
 
-# --- Configuration ---
-
-# 1. SET YOUR LEAGUE ID HERE:
-#    Find this in the URL of your Yahoo Fantasy Baseball league page.
-#    Example: If URL is https://baseball.fantasysports.yahoo.com/b1/123456, ID is "123456"
 YAHOO_LEAGUE_ID = "41370" # <--- *** REPLACE THIS REQUIRED ***
-
-# 2. SET THE PATH TO YOUR AUTHENTICATION DIRECTORY:
-#    This is the directory where your 'private.json' file is located.
-#    Use '.' for the current directory, or provide a full path like '/path/to/your/auth'.
-#    Recommendation: Keep this directory separate from your script for security.
 AUTH_DIR = "C:\\Users\\eamon\\Git_Repos\\starter_starter\\starter-starter\\yfpy\\" # <--- *** ADJUST IF 'private.json' IS ELSEWHERE ***
-
-# 3. SET THE GAME CODE (usually 'mlb' for baseball)
 GAME_CODE = 'mlb'
-
-# --- End Configuration ---
 
 def ensure_auth_dir_and_private_json(auth_dir):
     """Checks if auth directory and private.json exist, providing guidance."""
@@ -102,92 +88,6 @@ def get_starting_pitchers(league_id, game_code, auth_dir):
         roster = yfs.get_team_roster_player_info_by_date(2, )
        
 
-            # --- Debugging Loop for Specific Player by Name ---
-
-        target_name = "Kris Bubic"  # <--- Set the player name you want to find
-
-        print("\n" + "="*60)
-        print(f"DEBUG: Searching Roster for Player: '{target_name}'")
-        print("="*60)
-
-        player_found_flag = False
-        player_index = -1 # To keep track of the player's position in the original list
-
-        # Assuming 'roster' is the list of player objects from team.get_roster(day=today)
-        if not roster:
-            print("Roster data is empty or not loaded.")
-        else:
-            for player in roster:
-                player_index += 1 # Increment index for each player processed
-
-                # Basic check: Ensure player object exists and has the necessary name attributes
-                if not player or not hasattr(player, 'name') or not hasattr(player.name, 'full'):
-                    print(f"\nSkipping item at index {player_index}: Not a valid player object or missing 'name.full' attribute.")
-                    continue
-
-                current_player_name = player.name.full
-
-                # Check if the current player's full name matches the target name
-                if current_player_name == target_name:
-                    player_found_flag = True
-                    print(f"\n--- Found Player: {target_name} ---")
-                    print(f"Located at index in roster list: {player_index}")
-
-                    # Print the standard object representation first (provided by yfpy)
-                    print("\nStandard Object Representation:")
-                    try:
-                        print(player)
-                    except Exception as e:
-                        print(f"  - Error printing standard representation: {e}")
-
-
-                    # Print all attributes using vars() for detailed inspection
-                    print("\nAll Object Attributes (using vars()):")
-                    try:
-                        # vars(player) returns the __dict__ attribute (attributes and values)
-                        attributes = vars(player)
-                        if attributes: # Check if the dictionary is not empty
-                            for key, value in attributes.items():
-                                # Basic formatting for readability
-                                value_str = repr(value) # Use repr() for unambiguous representation
-                                if len(value_str) > 150: # Truncate very long values
-                                    value_str = value_str[:147] + "..."
-                                print(f"  - {key}: {value_str}")
-                        else:
-                            print("  - No attributes found via vars().")
-                    except TypeError:
-                        print("  - Could not retrieve attributes using vars() for this object (TypeError).")
-                    except Exception as e:
-                        print(f"  - An error occurred retrieving attributes: {e}")
-
-
-                    print("-" * 50) # Separator for readability
-
-                    # If you only expect one player with this name and want to stop
-                    # after finding the first match, uncomment the next line:
-                    # break
-
-            # Summary message after checking the entire roster
-            print("\n" + "="*60)
-            if player_found_flag:
-                print(f"Finished searching roster. Found '{target_name}'.")
-            else:
-                # If the player wasn't found, it might be helpful to list the names that WERE found
-                print(f"Finished searching roster. Player '{target_name}' was NOT found.")
-                print("\nNames found in the roster:")
-                names_in_roster = [p.name.full for p in roster if hasattr(p, 'name') and hasattr(p.name, 'full')]
-                if names_in_roster:
-                    for i, name in enumerate(names_in_roster):
-                        print(f"  {i+1}. {name}")
-                else:
-                    print("  - Could not extract any names from the roster data.")
-
-            print("="*60)
-        # --- End Debugging Loop ---
-
-
-
-
         print("\n--- Verifying all players by name ---")
         count = 0
         for player in roster:
@@ -227,12 +127,6 @@ def get_starting_pitchers(league_id, game_code, auth_dir):
                 print(f"   - {name}")
         else:
             print("ℹ️ No Starting Pitchers from your roster are scheduled to start today.")
-
-        # Optional: List other SPs for context
-        # if other_sps_on_roster:
-        #     print("\nOther SPs on your roster (not starting today):")
-        #     for info in other_sps_on_roster:
-        #         print(f"   - {info}")
 
     except Exception as e:
         print(f"\nAn error occurred while fetching or processing fantasy data: {e}")
