@@ -30,8 +30,16 @@ def get_todays_mlb_starting_pitchers():
         set: A set containing the full names of probable starting pitchers,
              or None if an error occurs or no games are scheduled.
     """
+    
+    #uncomment me
+    #today = datetime.date.today()
+    #today_str = today.strftime("%Y-%m-%d")
+
+    #test code
     today = datetime.date.today()
-    today_str = today.strftime("%Y-%m-%d")
+    future_date = today + datetime.timedelta(days=2)
+    today_str = future_date.strftime("%Y-%m-%d")
+    
     print(f"Fetching MLB probable starters for date: {today_str}")
 
     try:
@@ -154,8 +162,14 @@ def manage_fantasy_pitchers(league_id, team_id, game_code, auth_file):
     # --- Step 3: Get Fantasy Team Roster ---
     try:
         # Get tomorrow's date for roster planning
+        #today = datetime.date.today()
+        #today_str = today.strftime("%Y-%m-%d")
+
+        #testing code for Wed        
         today = datetime.date.today()
-        today_str = today.strftime("%Y-%m-%d")
+        future_date = today + datetime.timedelta(days=2)
+        today_str = future_date.strftime("%Y-%m-%d")
+
         print(f"Fetching your Yahoo! Fantasy Baseball team roster for: {today_str}")
         
         # Fetch current roster
@@ -174,7 +188,6 @@ def manage_fantasy_pitchers(league_id, team_id, game_code, auth_file):
         sys.exit(1)
     
     # --- Step 4 & 5: Analyze Roster and Identify Swaps ---
-    print("\n--- Analyzing Roster vs MLB Starters ---")
     players_to_start = []  # Players who ARE starting today but are on BENCH
     players_to_bench = []  # Players who are NOT starting today but are ACTIVE (P/SP)
     active_pitcher_slots = {}  # Dict of active pitcher slots
@@ -289,49 +302,82 @@ def manage_fantasy_pitchers(league_id, team_id, game_code, auth_file):
         sys.exit(0)
         
     # --- Step 7: Execute Lineup Changes ---
+    # --- Step 7: Execute Lineup Changes ---
     print("\n--- Submitting Roster Changes ---")
-    
+
     success = True
     try:
-        # Build the position_dict in the format required by edit_date_lineup
-        # Get tomorrow's date as a datetime object for the edit
-        tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+        # We need to create a list of position changes in the format the API expects
+        # The format should be: [{'player_id': 12345, 'selected_position': 'SP'}, {'player_id': 67890, 'selected_position': 'BN'}]
+        position_changes = []
         
-        # First, get the current positions for all players
-        position_dict = {}
+        # First, record all players' current positions
         for player in roster:
-            position_dict[player['player_id']] = player['selected_position']
+            # Create a simplified player dict with only the fields needed
+            position_changes.append({
+                'player_id': player['player_id'],  # Use numeric ID, not the full key
+                'selected_position': player['selected_position']  # IMPORTANT: Use 'selected_position', not 'position'
+            })
         
-        # Then apply our changes
+        # Now apply the changes
+        print("Applying position changes:")
         for change in roster_changes:
-            position_dict[change['player_id']] = change['target_position']
-            print(f"Setting {change['name']} (ID: {change['player_id']}) to position {change['target_position']}")
-        
-        # Execute the lineup edit for tomorrow
-        #result = tm.edit_date_lineup(today_str, position_dict)
-        result = tm.change_positions(today, position_dict)
-
-        print(f"Edit lineup API result: {result}")
-        
-        if not result:
-            success = False
-            print("Failed to apply lineup changes - API returned unsuccessful result")
+            player_id = change['player_id']
+            new_position = change['target_position']
             
+            # Find and update the player in position_changes
+            for player_change in position_changes:
+                if player_change['player_id'] == player_id:
+                    player_change['selected_position'] = new_position  # Use 'selected_position', not 'position'
+                    print(f"  - Setting {change['name']} (ID: {player_id}) to position {new_position}")
+                    break
+        
+        # Get today's date as a datetime.date object
+        today = datetime.date.today()
+
+        today = today + datetime.timedelta(days=2)
+        today_str = future_date.strftime("%Y-%m-%d")
+        
+        # Print our complete position changes before making the API call
+        print("\nFull position changes to be submitted:")
+        for change in position_changes:
+            # Find player name for better logging
+            player_name = "Unknown"
+            for player in roster:
+                if player['player_id'] == change['player_id']:
+                    player_name = player['name']
+                    break
+            print(f"  Player: {player_name} (ID: {change['player_id']}) - Position: {change['selected_position']}")
+        
+        # Try to make the API call with the correct format
+        print(f"\nSubmitting lineup changes for date: {today}")
+        try:
+            result = tm.change_positions(today, position_changes)
+            print(f"Edit lineup API result: {result}")
+            success = True
+        except Exception as e:
+            print(f"API call failed: {e}")
+            print("Checking the first entry in position_changes:")
+            if position_changes and len(position_changes) > 0:
+                print(f"First entry keys: {position_changes[0].keys()}")
+            raise
+
     except Exception as e:
         print(f"\nERROR: Failed to submit roster changes to Yahoo: {e}")
+        print(f"Error Type: {type(e).__name__}") # Print error type
         print("\nPotential Reasons:")
+        print("- Yahoo Fantasy API expects a different format for player IDs or position dictionary.")
         print("- API Error from Yahoo (e.g., invalid move, locked roster, game started).")
-        print("- Issues with Yahoo Fantasy API parsing or method parameters.")
         print("- Permissions issues with your Yahoo App credentials.")
         print("\nNo changes were made.")
         import traceback
         traceback.print_exc()
         sys.exit(1)
-        
+
     if success:
         print("\nSUCCESS: Roster changes submitted to Yahoo!")
     else:
-        print("\nWARNING: Some roster changes may not have been applied.")
+        print("\nWARNING: Roster changes submission might have failed or had issues.")
 
 # --- Run the main function ---
 if __name__ == "__main__":
